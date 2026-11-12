@@ -24,7 +24,7 @@ namespace ams::secmon {
     struct ConfigurationContext {
         union {
             SecureMonitorConfiguration secmon_cfg;
-            u8 _raw_exosphere_config[0x80];
+            u8 _raw_exosphere_config[0x88];
         };
         union {
             EmummcConfiguration emummc_cfg;
@@ -35,11 +35,11 @@ namespace ams::secmon {
         pkg1::BootConfig boot_config;
         u8 rsa_private_exponents[4][se::RsaSize];
         union {
-            u8 _misc_data[0xFC0 - sizeof(_raw_exosphere_config) - sizeof(_raw_emummc_config) - sizeof(sealed_device_keys) - sizeof(sealed_master_keys) - sizeof(boot_config) - sizeof(rsa_private_exponents)];
+            u8 _misc_data[0xFC8 - sizeof(_raw_exosphere_config) - sizeof(_raw_emummc_config) - sizeof(sealed_device_keys) - sizeof(sealed_master_keys) - sizeof(boot_config) - sizeof(rsa_private_exponents)];
         };
         /* u8 l1_page_table[0x40]; */
     };
-    static_assert(sizeof(ConfigurationContext) == 0xFC0);
+    static_assert(sizeof(ConfigurationContext) == 0xFC8);
     static_assert(util::is_pod<ConfigurationContext>::value);
 
     namespace impl {
@@ -113,6 +113,10 @@ namespace ams::secmon {
     }
 
     ALWAYS_INLINE fuse::HardwareState GetHardwareState() {
+        if (GetSecmonConfiguration().ShouldForceDevelopment()) {
+            return fuse::HardwareState_Development;
+        }
+
         return GetSecmonConfiguration().GetHardwareState();
     }
 
@@ -134,6 +138,14 @@ namespace ams::secmon {
 
     ALWAYS_INLINE bool IsProduction() {
         return GetSecmonConfiguration().IsProduction();
+    }
+
+    ALWAYS_INLINE bool ShouldForceDevelopment() {
+        return GetSecmonConfiguration().ShouldForceDevelopment();
+    }
+
+    ALWAYS_INLINE u64 GetHardcodedDeviceId() {
+        return GetSecmonConfiguration().device_id;
     }
 
 }

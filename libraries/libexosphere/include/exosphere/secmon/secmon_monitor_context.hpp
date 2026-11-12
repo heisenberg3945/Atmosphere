@@ -31,6 +31,7 @@ namespace ams::secmon {
         SecureMonitorConfigurationFlag_AllowWritingToCalibrationBinarySysmmc  = (1u << 6),
         SecureMonitorConfigurationFlag_ForceEnableUsb30                       = (1u << 7),
         SecureMonitorConfigurationFlag_BootConfigMemoryModeEnabled            = (1u << 8),
+        SecureMonitorConfigurationFlag_ShouldForceDevelopment                 = (1u << 9),
 
         SecureMonitorConfigurationFlag_Default = SecureMonitorConfigurationFlag_IsDevelopmentFunctionEnabledForKernel,
     };
@@ -47,11 +48,12 @@ namespace ams::secmon {
         u32 log_baud_rate;
         u32 reserved1[2];
         EmummcConfiguration emummc_cfg;
+        u64 device_id;
 
         constexpr bool IsValid() const { return this->magic == Magic; }
     };
     static_assert(util::is_pod<SecureMonitorStorageConfiguration>::value);
-    static_assert(sizeof(SecureMonitorStorageConfiguration) == 0x130);
+    static_assert(sizeof(SecureMonitorStorageConfiguration) == 0x138);
 
     struct SecureMonitorConfiguration {
         ams::TargetFirmware target_firmware;
@@ -66,6 +68,7 @@ namespace ams::secmon {
         u8  reserved0;
         u32 log_baud_rate;
         u32 reserved1[(0x80 - 0x1C) / sizeof(u32)];
+        u64 device_id;
 
         constexpr void CopyFrom(const SecureMonitorStorageConfiguration &storage) {
             this->target_firmware = storage.target_firmware;
@@ -75,12 +78,18 @@ namespace ams::secmon {
             this->log_port        = storage.log_port;
             this->log_flags       = storage.log_flags;
             this->log_baud_rate   = storage.log_baud_rate != 0 ? storage.log_baud_rate : 115200;
+            this->device_id       = storage.device_id;
         }
 
         void SetFuseInfo() {
             this->hardware_type  = fuse::GetHardwareType();
             this->soc_type       = fuse::GetSocType();
-            this->hardware_state = fuse::GetHardwareState();
+
+            if (this->flags[0] & SecureMonitorConfigurationFlag_ShouldForceDevelopment) {
+                this->hardware_state = 0;
+            } else {
+                this->hardware_state = fuse::GetHardwareState();
+            }
         }
 
         constexpr ams::TargetFirmware GetTargetFirmware() const { return this->target_firmware; }
@@ -105,11 +114,12 @@ namespace ams::secmon {
         constexpr bool AllowWritingToCalibrationBinarySysmmc()  const { return (this->flags[0] & SecureMonitorConfigurationFlag_AllowWritingToCalibrationBinarySysmmc)  != 0; }
         constexpr bool IsUsb30ForceEnabled()                    const { return (this->flags[0] & SecureMonitorConfigurationFlag_ForceEnableUsb30)                       != 0; }
         constexpr bool IsBootConfigMemoryModeEnabled()          const { return (this->flags[0] & SecureMonitorConfigurationFlag_BootConfigMemoryModeEnabled)            != 0; }
+        constexpr bool ShouldForceDevelopment()                 const { return (this->flags[0] & SecureMonitorConfigurationFlag_ShouldForceDevelopment)                 != 0; }
 
         constexpr bool IsDevelopmentFunctionEnabled(bool for_kern) const { return for_kern ? this->IsDevelopmentFunctionEnabledForKernel() : this->IsDevelopmentFunctionEnabledForUser(); }
     };
     static_assert(util::is_pod<SecureMonitorConfiguration>::value);
-    static_assert(sizeof(SecureMonitorConfiguration) == 0x80);
+    static_assert(sizeof(SecureMonitorConfiguration) == 0x88);
 
     constexpr inline const SecureMonitorConfiguration DefaultSecureMonitorConfiguration = {
         .target_firmware = ams::TargetFirmware_Current,
@@ -124,6 +134,7 @@ namespace ams::secmon {
         .reserved0       = {},
         .log_baud_rate   = 115200,
         .reserved1       = {},
+        .device_id       = 0,
     };
 
 }

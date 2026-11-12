@@ -104,6 +104,7 @@ namespace ams::ncm {
 
         static const SystemProgramId BrowserCoreDll;
 
+        static const SystemProgramId Nvdbgsvc;
         static const SystemProgramId Manu;
         static const SystemProgramId Htc;
         static const SystemProgramId DmntGen2;
@@ -216,6 +217,7 @@ namespace ams::ncm {
 
     inline constexpr const SystemProgramId SystemProgramId::BrowserCoreDll = { 0x010000000000085Dul };
 
+    inline constexpr const SystemProgramId SystemProgramId::Nvdbgsvc    = { 0x010000000000B120ul };
     inline constexpr const SystemProgramId SystemProgramId::Manu           = { 0x010000000000B14Aul };
     inline constexpr const SystemProgramId SystemProgramId::Htc            = { 0x010000000000B240ul };
     inline constexpr const SystemProgramId SystemProgramId::DmntGen2       = { 0x010000000000D609ul };
@@ -461,6 +463,7 @@ namespace ams::ncm {
 
         static const SystemDebugAppletId Start;
 
+        static const SystemDebugAppletId DevMenu;
         static const SystemDebugAppletId SnapShotDumper;
 
         static const SystemDebugAppletId End;
@@ -468,6 +471,7 @@ namespace ams::ncm {
 
     inline constexpr const SystemDebugAppletId SystemDebugAppletId::Start           = { 0x0100000000002000ul };
 
+    inline constexpr const SystemDebugAppletId SystemDebugAppletId::DevMenu         = { 0x0100000000002064ul };
     inline constexpr const SystemDebugAppletId SystemDebugAppletId::SnapShotDumper  = { 0x0100000000002071ul };
 
     inline constexpr const SystemDebugAppletId SystemDebugAppletId::End             = { 0x0100000000002FFFul };
